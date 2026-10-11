@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#102a43">
+  <title>Smart Money — Keuangan Pribadi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=7">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" data-page="dashboard" aria-label="Smart Money dashboard">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H20v14H6.5A2.5 2.5 0 0 1 4 16.5z"/><path d="M4 8h16M15 12h5"/></svg></span>
+        <span>smart<span class="brand-light">money</span><small>PERSONAL FINANCE</small></span>
+      </a>
+      <div class="nav-label">MENU UTAMA</div>
+      <nav class="nav-list" aria-label="Navigasi utama">
+        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">▦</span>Dashboard</button>
+        <button class="nav-item" data-page="salary"><span class="nav-icon">◫</span>Kalkulator Gaji</button>
+        <button class="nav-item" data-page="transactions"><span class="nav-icon">⇄</span>Transaksi</button>
+        <button class="nav-item" data-page="budget"><span class="nav-icon">◷</span>Anggaran</button>
+        <button class="nav-item" data-page="goals"><span class="nav-icon">◎</span>Target Tabungan</button>
+        <button class="nav-item" data-page="reports"><span class="nav-icon">▥</span>Laporan</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="tip-card">
+          <span class="tip-icon">✦</span>
+          <strong>Tips keuangan</strong>
+          <p>Konsisten menyisihkan sedikit uang bisa membantumu mencapai tujuan besar.</p>
+          <button id="tipButton" class="text-button">Tips lainnya <span>↗</span></button>
+        </div>
+        <button class="nav-item settings-item" data-page="settings"><span class="nav-icon">⚙</span>Pengaturan</button>
+        <div class="profile">
+          <div class="avatar">SM</div><div class="profile-copy"><strong>Pengguna</strong><small>Keuangan pribadi</small></div><span class="profile-dots">•••</span>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Buka menu" aria-expanded="false">☰</button>
+        <div class="breadcrumb">Workspace <span>/</span> <strong id="breadcrumbPage">Dashboard</strong></div>
+        <div class="top-actions">
+          <span class="today-label" id="todayLabel"></span>
+          <button class="icon-button" id="langToggle" title="Bahasa / Language" aria-label="Language">ID</button>
+          <button class="icon-button" id="currencyToggle" title="Mata uang / Currency" aria-label="Currency">Rp</button>
+          <button class="icon-button" id="logoutButton" title="Keluar" aria-label="Keluar">⎋</button>
+          <button class="icon-button" id="toggleBalance" title="Sembunyikan/tampilkan saldo" aria-label="Sembunyikan saldo">◉</button>
+          <button class="icon-button theme-toggle" id="themeToggle" title="Ganti tema" aria-label="Ganti tema">☾</button>
+          <div class="avatar-wrap"><button type="button" class="top-avatar" id="topAvatar" aria-label="Profil / Masuk" title="Profil / Masuk">SM</button><span class="sync-dot" id="syncDot" data-state="saving"></span></div>
+        </div>
+      </header>
+
+      <section class="page active" id="page-dashboard">
+        <div class="page-heading">
+          <div><p class="eyebrow">RINGKASAN KEUANGAN</p><h1>Dashboard</h1><p class="subheading">Pantau kondisi keuanganmu dan capai tujuan berikutnya.</p></div>
+          <button class="primary-button" id="quickAdd"><span>＋</span> Tambah transaksi</button>
+        </div>
+        <div class="notice-card hidden" id="demoBanner"><span>✦</span><p><strong>Data contoh aktif.</strong> Sebagian data di aplikasi ini adalah demo, bukan data asli kamu. <button class="text-button" id="removeDemoBanner">Hapus data demo</button></p></div>
+        <div class="notice-card hidden" id="guestBanner"><span>👤</span><p><strong>Mode tamu.</strong> Data hanya tersimpan di perangkat ini. <button class="text-button" id="guestLogin">Masuk / Buat akun</button><button class="text-button" id="guestBannerClose" aria-label="Tutup">×</button></p></div>
+        <div class="summary-grid">
+          <article class="summary-card balance-card">
+            <div class="summary-top"><span>Saldo tersedia</span><span class="summary-icon wallet-icon">▱</span></div>
+            <div class="summary-value" data-money="balance">Rp0</div>
+            <div class="summary-foot"><span class="status-dot"></span> Berdasarkan transaksi tercatat</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-top"><span>Total pemasukan</span><span class="summary-icon income-icon">↙</span></div>
+            <div class="summary-value" data-money="income">Rp0</div>
+            <div class="summary-foot muted-foot">Bulan ini</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-top"><span>Total pengeluaran</span><span class="summary-icon expense-icon">↗</span></div>
+            <div class="summary-value" data-money="expense">Rp0</div>
+            <div class="summary-foot muted-foot">Bulan ini</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-top"><span>Total tabungan</span><span class="summary-icon savings-icon">◎</span></div>
+            <div class="summary-value" data-money="savings">Rp0</div>
+            <div class="summary-foot muted-foot">Dana dalam target tabungan</div>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel chart-panel">
+            <div class="panel-heading"><div><h2>Arus kas</h2><p>Perbandingan pemasukan dan pengeluaran</p></div><select id="cashflowPeriod" class="small-select" aria-label="Periode grafik"><option value="6">6 bulan terakhir</option><option value="3">3 bulan terakhir</option><option value="12">12 bulan terakhir</option></select></div>
+            <div class="chart-wrap"><canvas id="cashflowChart" aria-label="Grafik arus kas"></canvas></div>
+          </article>
+          <article class="panel category-panel">
+            <div class="panel-heading"><div><h2>Pengeluaran per kategori</h2><p>Bulan ini</p></div><button class="plain-more" data-goto="reports" aria-label="Lihat laporan">•••</button></div>
+            <div class="donut-wrap"><canvas id="categoryChart" aria-label="Grafik kategori pengeluaran"></canvas><div class="donut-center"><strong id="donutTotal">Rp0</strong><span>Total keluar</span></div></div>
+            <div id="categoryLegend" class="category-legend"></div>
+          </article>
+        </div>
+
+        <div class="lower-grid">
+          <article class="panel budget-watch-panel">
+            <div class="panel-heading"><div><h2>Pantauan anggaran</h2><p>Penggunaan anggaran bulan ini</p></div><button class="text-button" data-goto="budget">Lihat semua <span>→</span></button></div>
+            <div id="dashboardBudget"></div>
+            <div class="empty-state hidden" id="dashboardBudgetEmpty">Belum ada anggaran. Atur anggaran untuk mulai memantau.</div>
+          </article>
+          <article class="panel goals-panel">
+            <div class="panel-heading"><div><h2>Target tabungan</h2><p>Langkah kecil menuju tujuanmu</p></div><button class="text-button" data-goto="goals">Lihat semua <span>→</span></button></div>
+            <div id="dashboardGoals"></div>
+            <div class="empty-state hidden" id="dashboardGoalsEmpty">Belum ada target tabungan.</div>
+          </article>
+        </div>
+        <article class="panel activity-panel">
+          <div class="panel-heading"><div><h2>Aktivitas terakhir</h2><p>Jejak aksi terbaru kamu</p></div><button class="text-button" data-goto="activity">Lihat semua <span>→</span></button></div>
+          <div id="recentActivity" class="activity-list"></div>
+          <div class="empty-state hidden" id="recentActivityEmpty">Belum ada aktivitas. Tambahkan transaksi atau target untuk memulai.</div>
+        </article>
+      </section>
+
+      <section class="page" id="page-salary">
+        <div class="page-heading"><div><p class="eyebrow">RENCANAKAN PENDAPATAN</p><h1>Kalkulator Gaji Pintar</h1><p class="subheading">Buat rencana uang yang sesuai dengan kebutuhanmu.</p></div></div>
+        <div class="salary-layout">
+          <article class="panel form-panel">
+            <div class="panel-heading"><div><h2>Detail pendapatan</h2><p>Masukkan pendapatan bersih bulanan.</p></div></div>
+            <form id="salaryForm" class="stack-form">
+              <label>Gaji bulanan (Rp)<input type="number" id="salaryIncome" min="0" step="1" placeholder="5000000" required></label>
+              <label>Pendapatan tambahan (Rp)<input type="number" id="salaryExtra" min="0" step="1" placeholder="0" value="0"></label>
+              <div class="form-note">Contoh pembagian hanya rekomendasi awal. Sesuaikan dengan biaya wajib dan kondisi kamu. Kebutuhan, hiburan, dan cadangan dipecah otomatis ke anggaran kategori (bisa diubah di menu Anggaran); porsi tabungan hanya rekomendasi setoran bulanan, tidak dipindahkan otomatis.</div>
+              <div class="panel-subtitle">Rencana pembagian pendapatan</div>
+              <div class="allocation-row"><div class="allocation-label"><span class="legend-dot dot-needs"></span>Kebutuhan pokok <strong id="needsPctLabel">50%</strong></div><input type="range" id="needsPct" min="0" max="100" value="50"></div>
+              <div class="allocation-row"><div class="allocation-label"><span class="legend-dot dot-wants"></span>Keinginan & hiburan <strong id="wantsPctLabel">20%</strong></div><input type="range" id="wantsPct" min="0" max="100" value="20"></div>
+              <div class="allocation-row"><div class="allocation-label"><span class="legend-dot dot-savings"></span>Tabungan <strong id="savingsPctLabel">20%</strong></div><input type="range" id="savingsPct" min="0" max="100" value="20"></div>
+              <div class="allocation-row"><div class="allocation-label"><span class="legend-dot dot-buffer"></span>Dana cadangan/pengembangan <strong id="bufferPctLabel">10%</strong></div><input type="range" id="bufferPct" min="0" max="100" value="10"></div>
+              <div class="allocation-total"><span>Total alokasi</span><strong id="allocationTotal">100%</strong></div>
+              <p class="inline-error hidden" id="allocationError">Total persentase harus 100% sebelum anggaran diterapkan.</p>
+              <button type="submit" class="primary-button full-button">Hitung & terapkan anggaran</button>
+            </form>
+          </article>
+          <div class="salary-results">
+            <article class="panel salary-total-panel"><p class="eyebrow">TOTAL PENDAPATAN</p><div class="salary-total" id="salaryTotal">Rp0</div><p class="muted-foot">Perkiraan pembagian uang per bulan</p><div class="salary-bar" id="salaryBar"></div></article>
+            <article class="panel"><div class="panel-heading"><div><h2>Rekomendasi anggaran</h2><p>Nominal berdasarkan persentase pilihanmu</p></div></div><div id="allocationResults" class="allocation-results"></div></article>
+            <div class="notice-card"><span>✦</span><p><strong>Tips:</strong> Pastikan kebutuhan wajib dan cicilan tercukupi terlebih dahulu. Jika anggaran kebutuhan melebihi rencana, sesuaikan persentase agar tetap realistis.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-transactions">
+        <div class="page-heading"><div><p class="eyebrow">CATAT SETIAP AKTIVITAS</p><h1>Transaksi</h1><p class="subheading">Semua pemasukan dan pengeluaran di satu tempat.</p></div><button class="primary-button" id="addTransaction"><span>＋</span> Tambah transaksi</button></div>
+        <div class="summary-grid compact-summary">
+          <article class="summary-card"><div class="summary-top"><span>Pemasukan bulan ini</span><span class="summary-icon income-icon">↙</span></div><div class="summary-value" data-money="income">Rp0</div></article>
+          <article class="summary-card"><div class="summary-top"><span>Pengeluaran bulan ini</span><span class="summary-icon expense-icon">↗</span></div><div class="summary-value" data-money="expense">Rp0</div></article>
+          <article class="summary-card"><div class="summary-top"><span>Jumlah transaksi</span><span class="summary-icon wallet-icon">≡</span></div><div class="summary-value" id="transactionCount">0</div></article>
+        </div>
+        <article class="panel transactions-panel full-transactions">
+          <div class="filter-bar"><input type="search" id="transactionSearch" placeholder="Cari transaksi..." aria-label="Cari transaksi"><select id="typeFilter" aria-label="Filter jenis"><option value="all">Semua jenis</option><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option></select><select id="categoryFilter" aria-label="Filter kategori"><option value="all">Semua kategori</option></select><input type="month" id="monthFilter" aria-label="Filter bulan"></div>
+          <div class="table-scroll"><table><thead><tr><th>TRANSAKSI</th><th>KATEGORI</th><th>JENIS</th><th>TANGGAL</th><th>NOMINAL</th><th>AKSI</th></tr></thead><tbody id="allTransactions"></tbody></table></div>
+          <div class="empty-state hidden" id="transactionsEmpty">Tidak ada transaksi yang cocok. Tambahkan transaksi atau ubah filter.</div>
+        </article>
+      </section>
+
+      <section class="page" id="page-budget">
+        <div class="page-heading"><div><p class="eyebrow">KENDALIKAN PENGELUARAN</p><h1>Anggaran</h1><p class="subheading">Pantau penggunaan anggaran setiap kategori.</p></div><button class="primary-button" id="editBudgetButton"><span>⚙</span> Atur anggaran</button></div>
+        <div class="summary-grid compact-summary"><article class="summary-card"><div class="summary-top"><span>Total anggaran</span><span class="summary-icon wallet-icon">▱</span></div><div class="summary-value" id="budgetTotal">Rp0</div></article><article class="summary-card"><div class="summary-top"><span>Sudah digunakan</span><span class="summary-icon expense-icon">↗</span></div><div class="summary-value" id="budgetSpent">Rp0</div></article><article class="summary-card"><div class="summary-top"><span>Sisa anggaran</span><span class="summary-icon savings-icon">◎</span></div><div class="summary-value" id="budgetRemaining">Rp0</div></article></div>
+        <div id="budgetCards" class="budget-grid"></div>
+        <div class="empty-state hidden panel" id="budgetEmpty">Terapkan anggaran dari Kalkulator Gaji Pintar untuk mulai memantau pengeluaran.</div>
+      </section>
+
+      <section class="page" id="page-goals">
+        <div class="page-heading"><div><p class="eyebrow">WUJUDKAN RENCANAMU</p><h1>Target Tabungan</h1><p class="subheading">Buat tujuan, sisihkan uang, dan pantau progresnya.</p></div><button class="primary-button" id="addGoal"><span>＋</span> Buat target</button></div>
+        <div class="summary-grid compact-summary"><article class="summary-card"><div class="summary-top"><span>Total target</span><span class="summary-icon wallet-icon">◎</span></div><div class="summary-value" id="goalsTotalTarget">Rp0</div></article><article class="summary-card"><div class="summary-top"><span>Sudah terkumpul</span><span class="summary-icon savings-icon">↗</span></div><div class="summary-value" id="goalsTotalSaved">Rp0</div></article><article class="summary-card"><div class="summary-top"><span>Target aktif</span><span class="summary-icon income-icon">⌁</span></div><div class="summary-value" id="goalsActiveCount">0</div></article></div>
+        <div id="goalsGrid" class="goals-grid"></div>
+        <div class="empty-state hidden panel" id="goalsEmpty">Belum ada target tabungan. Buat target pertamamu.</div>
+      </section>
+
+      <section class="page" id="page-reports">
+        <div class="page-heading"><div><p class="eyebrow">PAHAMI KEBIASAANMU</p><h1>Laporan Keuangan</h1><p class="subheading">Analisis berdasarkan transaksi yang kamu catat.</p></div><button class="primary-button" id="exportCsv"><span>⬇</span> Ekspor Excel</button></div>
+        <div class="summary-grid compact-summary"><article class="summary-card"><div class="summary-top"><span>Pemasukan keseluruhan</span><span class="summary-icon income-icon">↙</span></div><div class="summary-value" id="reportIncome">Rp0</div></article><article class="summary-card"><div class="summary-top"><span>Pengeluaran keseluruhan</span><span class="summary-icon expense-icon">↗</span></div><div class="summary-value" id="reportExpense">Rp0</div></article><article class="summary-card"><div class="summary-top"><span>Selisih</span><span class="summary-icon savings-icon">±</span></div><div class="summary-value" id="reportNet">Rp0</div></article></div>
+        <div class="dashboard-grid"><article class="panel chart-panel"><div class="panel-heading"><div><h2>Tren arus kas</h2><p>6 bulan terakhir</p></div></div><div class="chart-wrap"><canvas id="reportChart"></canvas></div></article><article class="panel"><div class="panel-heading"><div><h2>Analisis sederhana</h2><p>Berdasarkan catatanmu</p></div></div><div id="reportInsights" class="insights-list"></div></article></div>
+      </section>
+
+      <section class="page" id="page-activity">
+        <div class="page-heading"><div><p class="eyebrow">JEJAK AKTIVITAS</p><h1>Riwayat Aktivitas</h1><p class="subheading">Semua yang pernah kamu lakukan di aplikasi, dari yang terbaru.</p></div><button class="secondary-button" data-goto="dashboard">← Kembali</button></div>
+        <article class="panel">
+          <div class="filter-bar"><select id="activityFilter" aria-label="Filter aktivitas"><option value="all">Semua aktivitas</option><option value="tx">Transaksi</option><option value="goal">Target &amp; tabungan</option><option value="other">Lainnya</option></select><span class="act-count"><span id="activityCount">0</span> <span>Jumlah aktivitas</span></span></div>
+          <div id="activityList" class="activity-list"></div>
+          <div class="empty-state hidden" id="activityEmpty">Belum ada aktivitas. Tambahkan transaksi atau target untuk memulai.</div>
+          <div class="activity-actions"><button type="button" class="secondary-button hidden" id="activityMore">Tampilkan lebih banyak</button><button type="button" class="text-button" id="clearActivity">Hapus riwayat</button></div>
+        </article>
+      </section>
+
+      <section class="page" id="page-settings">
+        <div class="page-heading"><div><p class="eyebrow">PREFERENSI APLIKASI</p><h1>Pengaturan</h1><p class="subheading">Atur pengalaman dan data Smart Money.</p></div></div>
+        <article class="panel settings-panel"><div class="setting-row profile-row"><div class="profile-edit"><button type="button" class="avatar avatar-lg" id="profileAvatarLg" aria-label="Ganti foto" title="Ganti foto">SM</button><div><strong id="profileName">Pengguna</strong><p id="profileEmail"></p><p class="photo-hint">Ketuk foto untuk menggantinya. Foto dipotong persegi dan ikut tersimpan di akunmu setelah masuk.</p></div></div><div class="profile-actions"><input type="file" id="photoInput" accept="image/*" hidden><button type="button" class="secondary-button" id="photoUpload">Ganti foto</button><button type="button" class="secondary-button hidden" id="photoRemove">Hapus foto</button></div></div><div class="setting-row"><div><strong>Akun</strong><p id="accountInfo"></p></div><button class="secondary-button" id="logoutSetting">Keluar</button><button class="primary-button hidden" id="loginSetting">Masuk / Buat akun</button></div><div class="setting-row"><div><strong>Riwayat aktivitas</strong><p>Lihat semua transaksi dan aksi yang pernah kamu lakukan.</p></div><button class="secondary-button" data-goto="activity">Buka</button></div><div class="setting-row"><div><strong>Bahasa</strong><p>Pilih bahasa tampilan aplikasi.</p></div><select id="langSelect" class="small-select" aria-label="Bahasa"><option value="id">Bahasa Indonesia</option><option value="en">English</option></select></div><div class="setting-row"><div><strong>Mata uang tampilan</strong><p>Data tersimpan dalam Rupiah; USD hanya konversi tampilan memakai kurs manual (input nominal tetap dalam Rp).</p></div><select id="currencySelect" class="small-select" aria-label="Mata uang"><option value="IDR">IDR (Rp)</option><option value="USD">USD ($)</option></select></div><div class="setting-row"><div><strong>Kurs USD (Rp per $1)</strong><p>Diisi manual, tidak diambil otomatis dari internet.</p></div><input id="rateInput" type="number" min="1" step="1" class="small-select" style="width:110px" aria-label="Kurs"></div><div class="setting-row"><div><strong>Data demo</strong><p>Isi aplikasi dengan contoh transaksi agar kamu bisa mencoba fiturnya.</p></div><button class="secondary-button" id="loadDemo">Muat data demo</button></div><div class="setting-row"><div><strong>Hapus data demo</strong><p>Hanya menghapus data contoh (transaksi, target, anggaran demo). Data asli kamu tetap ada.</p></div><button class="secondary-button" id="removeDemo">Hapus data demo</button></div><div class="setting-row"><div><strong>Hapus seluruh data</strong><p>Hapus transaksi, target, dan anggaran yang tersimpan di akun ini.</p></div><button class="danger-button" id="clearData">Hapus data</button></div><div class="setting-row"><div><strong>Penyimpanan &amp; sinkronisasi</strong><p id="storageInfo"></p></div><span class="storage-pill" id="syncPill">—</span></div></article>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="transactionDialog" class="app-dialog">
+    <form id="transactionForm" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">CATAT KEUANGAN</p><h2 id="transactionDialogTitle">Tambah transaksi</h2></div><button type="button" class="close-dialog" data-close="transactionDialog" aria-label="Tutup">×</button></div>
+      <input type="hidden" id="transactionId">
+      <div class="seg" role="group" aria-label="Jenis transaksi"><button type="button" data-type="expense">Pengeluaran</button><button type="button" data-type="income">Pemasukan</button></div><select id="transactionType" class="hidden" required aria-hidden="true"><option value="expense">Pengeluaran</option><option value="income">Pemasukan</option></select>
+      <label>Nama transaksi<input id="transactionName" maxlength="80" placeholder="Contoh: Makan siang" required></label>
+      <div class="two-fields"><label>Kategori<select id="transactionCategory" required></select></label><label>Nominal (Rp)<input id="transactionAmount" type="number" min="1" step="1" placeholder="50000" required></label></div>
+      <div class="two-fields"><label>Tanggal<input id="transactionDate" type="date" required></label><label>Metode pembayaran<select id="transactionMethod"><option>Tunai</option><option>Transfer bank</option><option>DANA</option><option>GoPay</option><option>OVO</option><option>Lainnya</option></select></label></div>
+      <label>Catatan (opsional)<textarea id="transactionNote" rows="2" maxlength="200" placeholder="Tambahkan catatan..."></textarea></label>
+      <div class="dialog-actions"><button type="button" class="secondary-button" data-close="transactionDialog">Batal</button><button type="submit" class="primary-button">Simpan transaksi</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="goalDialog" class="app-dialog">
+    <form id="goalForm" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">RENCANA MASA DEPAN</p><h2 id="goalDialogTitle">Buat target tabungan</h2></div><button type="button" class="close-dialog" data-close="goalDialog" aria-label="Tutup">×</button></div>
+      <input type="hidden" id="goalId">
+      <label>Nama target<input id="goalName" maxlength="70" placeholder="Contoh: Laptop baru" required></label>
+      <div class="two-fields"><label>Target (Rp)<input id="goalTarget" type="number" min="1" step="1" placeholder="8000000" required></label><label><span id="goalInitialLabel">Tabungan awal (Rp)</span><input id="goalInitial" type="number" min="0" step="1" value="0" required></label></div>
+      <div class="two-fields"><label>Ikon<select id="goalIcon"><option value="💻">💻 Laptop</option><option value="📱">📱 HP</option><option value="🏍️">🏍️ Motor</option><option value="🚗">🚗 Mobil</option><option value="🏠">🏠 Rumah</option><option value="🎓">🎓 Pendidikan</option><option value="🛟">🛟 Dana darurat</option><option value="✈️">✈️ Liburan</option><option value="💼">💼 Modal bisnis</option><option value="🎯">🎯 Lainnya</option></select></label><label>Tenggat (opsional)<input id="goalDeadline" type="date"></label></div>
+      <div class="dialog-actions"><button type="button" class="secondary-button" data-close="goalDialog">Batal</button><button type="submit" class="primary-button">Simpan target</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="depositDialog" class="app-dialog">
+    <form id="depositForm" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">SETOR TABUNGAN</p><h2>Tambah setoran</h2><p id="depositGoalLabel" class="muted-foot"></p></div><button type="button" class="close-dialog" data-close="depositDialog" aria-label="Tutup">×</button></div>
+      <input type="hidden" id="depositGoalId">
+      <label>Nominal setoran (Rp)<input id="depositAmount" type="number" min="1" step="1" placeholder="100000" required></label>
+      <p class="form-note">Setoran akan mengurangi saldo tersedia dan menambah saldo target tabungan dengan nominal yang sama.</p>
+      <div class="dialog-actions"><button type="button" class="secondary-button" data-close="depositDialog">Batal</button><button type="submit" class="primary-button">Konfirmasi setoran</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="budgetDialog" class="app-dialog budget-dialog">
+    <form id="budgetForm" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">ANGGARAN BULANAN</p><h2>Atur anggaran</h2></div><button type="button" class="close-dialog" data-close="budgetDialog" aria-label="Tutup">×</button></div>
+      <div class="budget-hero"><div><span>Total anggaran bulanan</span><strong id="budgetDialogTotal">Rp0</strong></div><span class="budget-hero-icon">◷</span></div>
+      <p class="form-note">Masukkan batas pengeluaran per kategori. Kosongkan atau isi 0 jika tidak ingin memakai anggaran untuk kategori itu.</p>
+      <div id="budgetInputs" class="budget-inputs"></div>
+      <div class="dialog-actions"><button type="button" class="secondary-button" data-close="budgetDialog">Batal</button><button type="submit" class="primary-button">Simpan anggaran</button></div>
+    </form>
+  </dialog>
+  <div id="authScreen" class="auth-screen hidden">
+    <div class="auth-card">
+      <button type="button" class="close-dialog auth-close" id="authClose" aria-label="Tutup">×</button>
+      <div class="auth-brand"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H20v14H6.5A2.5 2.5 0 0 1 4 16.5z"/><path d="M4 8h16M15 12h5"/></svg></span><span>smart<span class="brand-light">money</span></span></div>
+      <div class="seg" role="tablist"><button type="button" id="tabLogin" class="on">Masuk</button><button type="button" id="tabRegister">Daftar</button></div>
+      <div id="authBoot" class="auth-boot">Memuat akun…</div>
+      <button type="button" id="googleBtn" class="google-button hidden"><svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Lanjutkan dengan Google</span></button>
+      <div id="authDivider" class="auth-divider hidden"><span>atau dengan email</span></div>
+      <form id="authForm" class="stack-form" novalidate>
+        <label id="nameRow" class="hidden">Nama<input id="authName" autocomplete="name" maxlength="40" placeholder="Nama kamu"></label>
+        <label>Email<input id="authEmail" type="email" autocomplete="username" placeholder="nama@gmail.com" required></label>
+        <label>Kata sandi<span class="pw-wrap"><input id="authPassword" type="password" autocomplete="current-password" minlength="8" placeholder="Minimal 8 karakter" required><button type="button" class="pw-toggle" aria-label="Lihat/sembunyikan kata sandi" title="Lihat/sembunyikan kata sandi" aria-pressed="false">👁</button></span></label>
+        <label id="confirmRow" class="hidden">Ulangi kata sandi<span class="pw-wrap"><input id="authConfirm" type="password" autocomplete="new-password" placeholder="Ulangi kata sandi"><button type="button" class="pw-toggle" aria-label="Lihat/sembunyikan kata sandi" title="Lihat/sembunyikan kata sandi" aria-pressed="false">👁</button></span></label>
+        <button type="button" id="forgotBtn" class="text-button forgot-btn hidden">Lupa kata sandi?</button>
+        <p class="inline-error hidden" id="authError" role="alert"></p>
+        <button type="submit" class="primary-button full-button" id="authSubmit">Masuk</button>
+      </form>
+      <p class="form-note" id="authNote">Akun ini disimpan hanya di browser/perangkat ini (bukan cloud). Data tidak dienkripsi; siapa pun yang memakai browser ini dapat membukanya lewat alat pengembang. Tidak ada fitur lupa kata sandi.</p>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js?v=7"></script>
+  <script src="script.js?v=7"></script>
+</body>
+</html>
